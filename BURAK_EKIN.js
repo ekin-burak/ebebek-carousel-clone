@@ -31,6 +31,7 @@
             }); 
         },
         
+        // JQuery load function
         loadJQuery(callback) {
             if(window.jQuery) {
                 callback();
@@ -42,6 +43,7 @@
             }
         },
 
+        // Load favorites from localStorage
         loadFavorites() {
             const favorites = localStorage.getItem(this.FAVORITES_LS_KEY);
             if(favorites) {
@@ -89,6 +91,7 @@
             }
         },
 
+        // Insert HTML to the page
         buildHTML() {
             const productCardsHTML = this.products.map(product => this.createProductCardHTML(product)).join('');
             const carouselHTML = `
@@ -109,53 +112,57 @@
             $(this.INSERT_AFTER).after(carouselHTML);
         },
 
-      createProductCardHTML(product) {
-        const isFavorite = this.favorites.includes(product.id);
-        const favoriteIcon = `<img src="https://www.e-bebek.com/assets/svg/default-favorite.svg" onmouseout="this.src='https://www.e-bebek.com/assets/svg/default-favorite.svg'" 
-                                alt="favorite" class="ebebek-heart-icon ${isFavorite ? 'favorited' : ''}">`;
-        let priceHTML;
+        createProductCardHTML(product) {
+            const isFavorite = this.favorites.includes(product.id);
+            const favoriteIconSrc = isFavorite ? 'https://www.e-bebek.com/assets/svg/default-hover-favorite.svg' : 'https://www.e-bebek.com/assets/svg/default-favorite.svg';
+            const favoriteIcon = `<img src="${favoriteIconSrc}" 
+                                        onmouseover="this.src='https://www.e-bebek.com/assets/svg/default-hover-favorite.svg'" 
+                                        onmouseout="if (!this.classList.contains('favorited')) { this.src='https://www.e-bebek.com/assets/svg/default-favorite.svg' }"
+                                        alt="favorite" class="ebebek-heart-icon ${isFavorite ? 'favorited' : ''}">`;
+            let priceHTML;
 
-        if (product.original_price && product.price < product.original_price) {
-            const discount = Math.round(((product.original_price - product.price) / product.original_price) * 100);
-            priceHTML = `
-                    <div class="ebebek-discount-container">
-                    <span class="ebebek-original-price">${product.original_price.toFixed(2).replace('.', ',')} TL</span>
-                    <span class="ebebek-discount-badge">%${discount}</span>
+            if (product.original_price && product.price < product.original_price) {
+                const discount = Math.round(((product.original_price - product.price) / product.original_price) * 100);
+                priceHTML = `
+                        <div class="ebebek-discount-container">
+                        <span class="ebebek-original-price">${product.original_price.toFixed(2).replace('.', ',')} TL</span>
+                        <span class="ebebek-discount-badge">%${discount}</span>
+                        </div>
+                        <span class="ebebek-current-price-discount">${product.price.toFixed(2).replace('.', ',')} TL</span>
+                    `;
+            } else {
+                priceHTML = `<div class="ebebek-price-container"><span class="ebebek-current-price">${product.price.toFixed(2).replace('.', ',')} TL</span></div>`;
+            }
+            
+            return `<div class="ebebek-product-card" data-id="${product.id}" data-url="${product.url}">
+                <div class="ebebek-card-top">
+                    <div class="ebebek-heart" data-id="${product.id}">
+                        ${favoriteIcon}
                     </div>
-                    <span class="ebebek-current-price-discount">${product.price.toFixed(2).replace('.', ',')} TL</span>
-                `;
-        } else {
-            priceHTML = `<div class="ebebek-price-container"><span class="ebebek-current-price">${product.price.toFixed(2).replace('.', ',')} TL</span></div>`;
-        }
-        
-        return `<div class="ebebek-product-card" data-id="${product.id}" data-url="${product.url}">
-            <div class="ebebek-card-top">
-                <div class="ebebek-heart">
-                    <div class="ebebek-heart-icon" data-id="${product.id}">${favoriteIcon}</div>
+                    <a href="${product.url}" target="_blank" class="ebebek-product-link">
+                        <img class="ebebek-product-image" src="${product.img}" alt="${product.name}">
+                    </a>
                 </div>
-                <a href="${product.url}" target="_blank" class="ebebek-product-link">
-                    <img class="ebebek-product-image" src="${product.img}" alt="${product.name}">
-                </a>
-            </div>
-            <div class="ebebek-card-bottom">
-                 <a href="${product.url}" target="_blank" class="ebebek-product-link">
-                    <div class="ebebek-product-name"><b>${product.brand} - </b> ${product.name}</div>
-                 </a>
-                 <div class="ebebek-star-container">
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
-                    <i class="fas fa-star"></i>
+                <div class="ebebek-card-bottom">
+                    <a href="${product.url}" target="_blank" class="ebebek-product-link">
+                        <div class="ebebek-product-name"><b>${product.brand} - </b> ${product.name}</div>
+                    </a>
+                    <div class="ebebek-star-container">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    ${priceHTML}
                 </div>
-                ${priceHTML}
-            </div>
-            <div class="product-item-container">
-                <button class="ebebek-add-to-cart-btn">Sepete Ekle</button>
-            </div>
-        </div>`;
-    },
+                <div class="product-item-container">
+                    <button class="ebebek-add-to-cart-btn">Sepete Ekle</button>
+                </div>
+            </div>`;
+        },
 
+        // Inject CSS for the carousel
         buildCSS() {
             const css = `
                 :root {
@@ -397,14 +404,9 @@
                     right: 15px;
                     top: 10px;
                 }
-
+                
                 .ebebek-heart-icon.favorited {
-                    color: var(--ebebek-orange);
-                    background-color: #fff;
-                    background-color: url('https://www.e-bebek.com/assets/svg/default-hover-favorite.svg');
-                    background-size: 25px;
-                    background-position: center;
-                    background-repeat: no-repeat;
+                    content: url('https://www.e-bebek.com/assets/svg/default-hover-favorite.svg');
                 }
 
                 .ebebek-star-container {
@@ -459,6 +461,7 @@
             $('<style>').addClass('ebebek-carousel-style').html(css).appendTo('head');
         },
 
+        // Set events for the carousel
         setEvents() {
             const $carousel = $(`#${this.CAROUSEL_ID}`);
           
@@ -471,7 +474,17 @@
               const $wrapper = $(e.currentTarget);
               const productId = $wrapper.data('id');
               this.toggleFavorite(productId);
-              $wrapper.find('.ebebek-heart-icon').toggleClass('favorited');
+
+              const $icon = $wrapper.find('.ebebek-heart-icon');
+              const isFavorite = this.favorites.includes(productId);
+
+              $icon.toggleClass('favorited', isFavorite);
+              
+              if (isFavorite) {
+                $icon.attr('src', 'https://www.e-bebek.com/assets/svg/default-hover-favorite.svg');
+              } else {
+                $icon.attr('src', 'https://www.e-bebek.com/assets/svg/default-favorite.svg');
+              }
           });
           
           $carousel.on('click', '.ebebek-product-card a, .ebebek-product-card img, .ebebek-product-card .ebebek-product-name', function(e) {
